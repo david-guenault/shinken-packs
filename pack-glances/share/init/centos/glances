@@ -1,0 +1,72 @@
+#!/bin/bash
+#
+#	/etc/rc.d/init.d/glances
+#
+#	Glances system monitoring server
+#
+# chkconfig: 2345 90 90
+# description: Glances is a cross-platform curses-based monitoring    \
+#			   tool which aims to present a maximum of information    \ 
+#              in a minimum of space, ideally to fit in a classical   \ 
+#              80x24 terminal or higher to have additional information.
+# processname: glances
+# config: /etc/glances/glances.conf
+# pidfile: /var/run/glances.pid
+
+. /etc/rc.d/init.d/functions
+
+PATH=/sbin:/usr/sbin:/bin:/usr/bin
+DESC="Glances server"
+NAME=glances
+DAEMON="/usr/bin/$NAME"
+PIDFILE="/var/run/$NAME.pid"
+CONF="/etc/glances/glances.conf"
+LISTEN="localhost"
+DAEMON_ARGS="-C $CONF -B $LISTEN -s"
+
+do_start() {
+    [ -x $DAEMON ] || exit 5
+    $DAEMON $DAEMON_ARGS > /dev/null 2>&1 & 
+    RETVAL=$?
+    [ $RETVAL -eq 0 ] && touch ${PIDFILE} && pgrep -f glances > ${PIDFILE}
+    return 0
+}	
+
+do_stop() {
+    rm -f $PIDFILE
+    pkill -9 $NAME > /dev/null 2>&1
+    return 0
+}
+
+do_status(){
+    status $NAME $PIDFILE
+    return 0
+}
+
+restart(){
+    stop
+    sleep 2
+    start
+    return 0
+}
+
+case "$1" in
+    start)
+        do_start
+	;;
+    stop)
+        do_stop
+	;;
+    status)
+        do_status
+	;;
+    restart)
+        do_restart
+	;;
+    *)
+	echo "Usage: glances {start|stop|status|restart"
+	exit 1
+	;;
+esac
+exit $?
+

@@ -1,0 +1,26 @@
+{
+        "name": "glances",
+        "types": ["pack"],
+        "version": "1.4",
+        "homepage": "https://github.com/shinken-monitoring/pack-glances",
+        "author": "David GUENAULT",
+        "description": "Standard check through checkglances.py and glances server",
+        "contributors": [
+          {
+                "name": "David GUENAULT",
+                "email": "david.guenault@gmail.com"
+          }
+        ],
+        "repository": "https://github.com/shinken-monitoring/pack-glances",
+        "keywords": [
+          "pack",
+          "system",
+          "libux",
+          "glances"
+          
+        ],
+        "dependencies": {
+          "shinken": ">=1.4"
+        },
+        "license": "AGPL"
+}
