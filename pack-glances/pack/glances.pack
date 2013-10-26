@@ -30,6 +30,9 @@
          "_SWAP_CRIT": {"type":"percent",
                                 "description": "Swap memory critical level"
                              },
+         "_FS": {"type":"string",
+                                "description": "partition list to monitor"
+                             },
          "_FS_WARN": {"type":"percent",
                                 "description": "fs warn level"
                              },
