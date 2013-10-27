@@ -39,5 +39,14 @@
          "_FS_CRIT": {"type":"percent",
                                 "description": "fs critical level"
                              },
+         "_IFACES": {"type":"string",
+                                "description": "ifaces list to monitor"
+                             },
+         "_NET_WARN": {"type":"integer",
+                                "description": "net warn level"
+                             },
+         "_NET_CRIT": {"type":"integer",
+                                "description": "net critical level"
+                             },
           }
 }
