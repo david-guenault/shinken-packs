@@ -1,0 +1,25 @@
+{
+        "name": "arbiter2",
+        "types": ["pack"],
+        "version": "2.0",
+        "homepage": "https://david-guenault.github.io/shinken-packs.html",
+        "author": "David GUENAULT",
+        "description": "Check shinken 2.x daemon health",
+        "contributors": [
+          {
+                "name": "David GUENAULT",
+                "email": "david.guenault@gmail.com"
+          }
+        ],
+        "repository": "https://github.com/david-guenault/shinken-packs",
+        "keywords": [
+          "pack",
+          "shinken",
+          "arbiter",
+          "health"
+        ],
+        "dependencies": {
+          "shinken": ">=2.0"
+        },
+        "license": "AGPL"
+}
