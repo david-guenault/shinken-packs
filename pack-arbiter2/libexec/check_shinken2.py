@@ -21,6 +21,7 @@ from optparse import OptionParser
 import requests
 from requests import exceptions
 import json
+import sys
 
 # Exit statuses recognized by Nagios and thus by Shinken
 OK = 0
@@ -79,34 +80,46 @@ def get_status(host=None, port=None, proto="http", target=None, daemon=None):
 
     return message
  
+def get_all_status(host=None, port=None, proto="http"):
+    uri = "%s://%s:%s/get-all-states" % (proto, host, port)
+    try:
+        result = requests.get(uri).json()
+    except requests.exceptions.ConnectionError:
+        message = { "message":"Connection error", "status":False }
+    except requests.exceptions.Timeout:
+        message = { "message":"Timeout", "status":False }
+    finally:
+        print "+%s+" % (85*"-")
+        print "| {:^20} | {:^20} | {:^15} | {:^19} |".format("TYPE","NAME","STATUS","REALM")
+        print "+%s+" % (85*"-")
+        for key,data in result.iteritems():
+            for daemon in data:
+                if not daemon["alive"]:
+                    alive= "dead"
+                else:
+                    alive= "alive"
+                print "| {:20} | {:20} | {:^15} | {:19} |".format(key,daemon["%s_name" % key], alive, daemon["realm"])
+        print "+%s+" % (85*"-")
+
+
 
 if __name__ == '__main__':
 
     parser = OptionParser()
     parser.add_option('-a', '--hostname', dest='hostname', default='127.0.0.1')
     parser.add_option('-p', '--portnumber', dest='portnum', default=7770, type=int)
-    parser.add_option('-s', '--ssl', dest='ssl', default=False)
-    parser.add_option('-t', '--target', dest='target')
+    parser.add_option('-s', '--ssl', action="store_true", dest='ssl', default=False)
+    parser.add_option('-t', '--target', dest='target',default=False,type=str)
     parser.add_option('-d', '--daemonname', dest='daemon', default='')
-    parser.add_option('-w', '--warning', dest='warning', default=1, type=int)
-    parser.add_option('-c', '--critical', dest='critical', default=0, type=int)
+    # parser.add_option('-w', '--warning', dest='warning', default=1, type=int)
+    # parser.add_option('-c', '--critical', dest='critical', default=0, type=int)
     parser.add_option('-T', '--timeout', dest='timeout', default=10, type=float)
+    parser.add_option('-v', '--verbose', action="store_true", dest='verbose', default=False)
+
 
     # Retrieving options
     options, args = parser.parse_args()
-    # TODO: for now, helpme doesn't work as desired
     options.helpme = False
-
-    # Check for required option target
-    if not getattr(options, 'target'):
-        print ('CRITICAL - target is not specified; '
-               'You must specify which daemon type you want to check!')
-        parser.print_help()
-        raise SystemExit(CRITICAL)
-    elif options.target not in daemon_types:
-        print 'CRITICAL - target', options.target, 'is not a Shinken daemon!'
-        parser.print_help()
-        raise SystemExit(CRITICAL)
 
     if options.ssl:
         proto = "https"
@@ -117,13 +130,32 @@ if __name__ == '__main__':
     result = ping(host=options.hostname, port=options.portnum, proto=proto)
     if not result["status"]:
         print "CRITICAL : the Arbiter is not reachable : (%s)." % result["message"] 
-        raise SystemExit(CRITICAL)
+        raise sys.exit(CRITICAL)
+
+    # detailled output and no more
+    if options.verbose:
+        get_all_status(host=options.hostname, port=options.portnum, proto=proto)
+        raise sys.exit(OK)
+        sys.exit(OK)
+
+    # Check for required option target
+    if not getattr(options, 'target'):
+        print ('CRITICAL - target is not specified; '
+               'You must specify which daemon type you want to check!')
+        parser.print_help()
+        raise sys.exit(CRITICAL)
+    elif options.target not in daemon_types:
+        print 'CRITICAL - target', options.target, 'is not a Shinken daemon!'
+        parser.print_help()
+        raise sys.exit(CRITICAL)
+
+
 
     # get daemons status (target = daemon type, daemon = daemon name)
     result = get_status(host=options.hostname, port=options.portnum, proto=proto, target=options.target, daemon = options.daemon)
     if not "status" in result.keys() or not result["status"]:
         print "Error : ", result["message"]
-        SystemExit(UNKNOWN)
+        sys.exit(UNKNOWN)
     else:
         if type(result["data"]) is list:
             # multiple daemons
@@ -137,16 +169,16 @@ if __name__ == '__main__':
 
             if len(dead) > 0:
                 print "[CRITICAL] The following %s(s) daemon(s) are dead : %s " % (options.target, ",".join(set(dead)))
-                SystemExit(CRITICAL)
+                sys.exit(CRITICAL)
             else:
                 print "[OK] all %s daemons are alive" % options.target
         else:
             # specific daemon name
             if result["data"]["alive"]:
                 print "[OK] %s %s is alive" % (options.target, options.daemon)
-                SystemExit(OK)
+                sys.exit(OK)
             else:
                 print "[CRITICAL] %s %s is dead" % (options.target, options.daemon)
-                SystemExit(CRITICAL)
+                sys.exit(CRITICAL)
 
 
