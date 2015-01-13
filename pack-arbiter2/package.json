@@ -2,7 +2,7 @@
         "name": "arbiter2",
         "types": ["pack"],
         "version": "2.0",
-        "homepage": "https://david-guenault.github.io/shinken-packs.html",
+        "homepage": "https://github.com/david-guenault/shinken-packs/blob/master/pack-arbiter2/README.md",
         "author": "David GUENAULT",
         "description": "Check shinken 2.x daemon health",
         "contributors": [
