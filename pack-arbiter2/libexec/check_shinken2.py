@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 #
 # Copyright (C) 2009-2011:
 #    Denis GERMAIN, dt.germain@gmail.com
