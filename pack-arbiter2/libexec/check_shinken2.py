@@ -29,7 +29,7 @@ WARNING = 1
 CRITICAL = 2
 UNKNOWN = 3
 
-daemon_types = ['arbiter', 'broker', 'scheduler', 'poller', 'reactionner']
+daemon_types = ['arbiter', 'broker', 'scheduler', 'poller', 'reactionner', 'receiver']
 
 
 
