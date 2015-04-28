@@ -3,17 +3,13 @@
     "description":"Check docker containers stats.",
     "path":"shinken/",
     "macros":{
-        "_shinken_daemon": {
-            "type":"list",
-            "description": "list of daemon types to check (arbiter,poller,broker,scheduler,receiver,reactionner)"
-        },
-    }
-}
-
-    "macros":{
         "_DOCKER_CONTAINERS" {
             "type":"list",
             "description":"coma separated list of containers names to be monitored"
+        },
+        "_DOCKER_HOST" {
+            "type":"str",
+            "description":"From which docker host does this container is monitored"
         },
         "_DOCKER_PORT" {
             "type":"int",
@@ -25,25 +21,51 @@
         },
         "_DOCKER_CA" {
             "type":"str",
-            "description":"tls ca"
+            "description":"tls ca filename"
         },
         "_DOCKER_CERT" {
             "type":"str",
-            "description":"tls client cert"
+            "description":"tls client cert filename"
         },
         "_DOCKER_KEY" {
             "type":"str",
-            "description":"tls client key"
+            "description":"tls client key filename"
         },
-
-    _CPU_WARN 80
-    _CPU_CRIT 90
-    _CPU_WAIT 2
-
-    _MEMORY_WARN 80
-    _MEMORY_CRIT 90
-
-    _NET_WARN 80
-    _NET_CRIT 100
-    _NET_WAIT 2
-    _NET_UNIT M
+        "_CPU_WARN" {
+            "type":"int",
+            "description":"cpu warning threshold %"
+        },
+        "_CPU_CRIT" {
+            "type":"int",
+            "description":"cpu critical threshold %"
+        },
+        "_CPU_WAIT" {
+            "type":"int",
+            "description":"how many time (in seconds) to wait before two cpu data collections"
+        },
+        "_CPU_WARN" {
+            "type":"int",
+            "description":"memory warning threshold %"
+        },
+        "_CPU_CRIT" {
+            "type":"int",
+            "description":"memory critical threshold %"
+        },        
+        "_NET_WARN" {
+            "type":"int",
+            "description":"net bandwidth warning threshold depend on _NET_UNIT for unit"
+        },
+        "_NET_CRITICAL" {
+            "type":"int",
+            "description":"net bandwidth critical threshold depend on _NET_UNIT for unit"
+        },
+        "_NET_WAIT" {
+            "type":"int",
+            "description":"how many time (in seconds) to wait before two net data collections"
+        },
+        "_NET_UNIT" {
+            "type":"str",
+            "description":"net bandwidth unit (M for megabits/s, K for kilobits/s, O for octets/s"
+        },
+    }
+}
