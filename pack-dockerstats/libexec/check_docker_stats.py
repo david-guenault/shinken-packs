@@ -254,7 +254,7 @@ if __name__ == '__main__':
 
     if options.stat == "cpu":
         result = getCpu(container=container, warn=options.warn, crit=options.crit, wait=options.wait)
-    elif options.stat == "memory":
+    elif options.stat == "mem":
         result = getMemory(container=container, warn=options.warn, crit=options.crit)
     elif options.stat == "net":
         result = getNet(container=container, warn=options.warn, crit=options.crit, unit=options.unit, wait=options.wait)
