@@ -45,6 +45,8 @@ def ping(host=None, port=None, proto="http", timeout=1):
         message = { "message":"Connection error", "status":False }
     except requests.exceptions.Timeout:
         message = { "message":"Timeout", "status":False }
+    except requests.exceptions.InvalidURL:
+        message = { "message":"Invalid URL", "status":False }
 
     return message    
 
@@ -154,6 +156,7 @@ if __name__ == '__main__':
         hostnames = [ options.hostnames ]
 
     hostname = False
+
 
     for h in hostnames:
         result = ping(host=h, port=options.portnum, proto=proto, timeout=options.timeout)
