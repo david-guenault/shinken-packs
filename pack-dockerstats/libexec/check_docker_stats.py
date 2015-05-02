@@ -50,6 +50,8 @@ def getStats(Id):
 
 
 def getCpu(container,warn, crit, wait):
+    if not container:
+        return False
 
     stats1 = getStats(container["Id"])
     time.sleep(wait)
@@ -86,7 +88,8 @@ def getCpu(container,warn, crit, wait):
     return cpu
 
 def getNet(container,warn, crit, wait=5, unit="K"):
-
+    if not container:
+        return False
     stats1 = getStats(container["Id"])
     time.sleep(wait)
     stats2 = getStats(container["Id"])
