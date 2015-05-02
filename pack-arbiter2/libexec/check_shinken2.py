@@ -159,6 +159,7 @@ if __name__ == '__main__':
 
 
     for h in hostnames:
+        h = h.strip()
         result = ping(host=h, port=options.portnum, proto=proto, timeout=options.timeout)
         if result["status"]:
             hostname = h
