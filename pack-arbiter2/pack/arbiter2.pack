@@ -7,5 +7,9 @@
             "type":"list",
             "description": "list of daemon types to check (arbiter,poller,broker,scheduler,receiver,reactionner)"
         },
+        "_shinken_arbiters": {
+            "type":"list",
+            "description": "list of arbiters addresses to make multi arbiters check (allways take the master arbiter)"
+        },        
     }
 }
