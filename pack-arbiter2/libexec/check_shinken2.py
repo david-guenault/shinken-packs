@@ -208,7 +208,7 @@ if __name__ == '__main__':
                 print "[CRITICAL] The following %s(s) daemon(s) are dead : %s " % (options.target, ",".join(set(dead)))
                 sys.exit(CRITICAL)
             else:
-                print "[OK] all %s daemons are alive" % options.target
+                print "[OK] all %s daemons are alive (%s) " % (options.target, ",".join(set(alive)))
         else:
             # specific daemon name
             if result["data"]["alive"]:
