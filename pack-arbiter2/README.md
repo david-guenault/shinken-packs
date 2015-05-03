@@ -51,6 +51,7 @@ define host {
   _shinken_arbiters arbiter1.lab.lan, arbiter2.lab.lan
 }
 ```
+
 ## Console visualisation
 
 You can get a complete view of the shinken daemons state using the verbose mode (-v). 
