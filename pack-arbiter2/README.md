@@ -59,7 +59,7 @@ You can get a complete view of the shinken daemons state using the verbose mode 
 
 ```
 ./check_shinken2.py -a rah1.lab.lan, rah2.lab.lan -v
-From : rah1.box4prod.lan
+From : rah1.lab.lan
 
 +----------------------------------------------------------------------------------------------------------+
 |         TYPE         |         NAME         |     STATUS      |        REALM        | ATTEMPTS |  SPARE  |
