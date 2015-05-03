@@ -29,6 +29,7 @@ define host {
     contact_groups admins
     _SHINKEN_DAEMON arbiter, broker, receiver, scheduler, poller, reactionner
 }
+```
 
 Multi arbiters exemple:
 
