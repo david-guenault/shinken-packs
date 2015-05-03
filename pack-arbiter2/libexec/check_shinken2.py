@@ -205,17 +205,17 @@ if __name__ == '__main__':
                     dead.append(d["%s_name" % options.target])
 
             if len(dead) > 0:
-                print "[CRITICAL] The following %s(s) daemon(s) are dead : %s " % (options.target, ",".join(set(dead)))
+                print "[CRITICAL] The following %s(s) daemon(s) are dead : %s (from %s arbiter)" % (options.target, ",".join(set(dead)), hostname)
                 sys.exit(CRITICAL)
             else:
-                print "[OK] all %s daemons are alive (%s) " % (options.target, ",".join(set(alive)))
+                print "[OK] all %s daemons are alive (%s) (from %s arbiter)" % (options.target, ",".join(set(alive)), hostname)
         else:
             # specific daemon name
             if result["data"]["alive"]:
-                print "[OK] %s %s is alive" % (options.target, options.daemon)
+                print "[OK] %s %s is alive (from %s arbiter)" % (options.target, options.daemon, hostname)
                 sys.exit(OK)
             else:
-                print "[CRITICAL] %s %s is dead" % (options.target, options.daemon)
+                print "[CRITICAL] %s %s is dead (from %s arbiter)" % (options.target, options.daemon, hostname)
                 sys.exit(CRITICAL)
 
 
