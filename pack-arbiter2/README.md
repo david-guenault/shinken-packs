@@ -1,5 +1,7 @@
 # Arbiter2
 
+WARNING : SSL/TLS is not curently implemented. Coming soon (realy).
+
 ## Purpose
 
 shinken pack for monitoring shinken 2.x.x daemons.
