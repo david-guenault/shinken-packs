@@ -1,26 +1,18 @@
 #!/usr/bin/env python
 #
-# Copyright (C) 2009-2011:
-#    Denis GERMAIN, dt.germain@gmail.com
-#    Gabes Jean, naparuba@gmail.com
-#    Gerhard Lausser, Gerhard.Lausser@consol.de
-#    Gregory Starck, g.starck@gmail.com
-#    Hartmut Goebel, h.goebel@goebel-consult.de
-#    David GUENAULT, david.guenault@gmail.com   
+# Copyright (C) 2009-2015:
+# David GUENAULT, david.guenault@gmail.com
 #
 # You should have received a copy of the GNU Affero General Public License
 # along with this plugin.  If not, see <http://www.gnu.org/licenses/>.
-"""
-check_shinken2.py:
-    This check is getting daemons state from a arbiter connection.
-"""
+#
+#check_shinken2.py:
+#    This check is getting daemons state from a arbiter connection
 
-import os
-import socket
+
 from optparse import OptionParser
 import requests
 from requests import exceptions
-import json
 import sys
 
 # Exit statuses recognized by Nagios and thus by Shinken
@@ -32,35 +24,53 @@ UNKNOWN = 3
 daemon_types = ['arbiter', 'broker', 'scheduler', 'poller', 'reactionner', 'receiver']
 
 
+def ping(host=None, port=None, protocol="http", timeout=1, ssl=False, ca=False, cert=None, key=None):
 
-def ping(host=None, port=None, proto="http", timeout=1):
-    uri = "%s://%s:%s/ping" % (proto, host, port)
+    uri = "%s://%s:%s/ping" % (protocol, host, port)
+
     try:
-        result = requests.get(uri, timeout=timeout)
-        if result.text == "\"pong\"":
-            message = { "message":"pong", "status":True }
+        if ssl:
+            pingresult = requests.get(uri, timeout=timeout, verify=ca, cert=(cert, key))
         else:
-            message = { "message":"Invalid response to ping (%s)" % result.text, "status":False }
-    except requests.exceptions.ConnectionError:
-        message = { "message":"Connection error", "status":False }
+            pingresult = requests.get(uri, timeout=timeout, verify=False)
+
+        if pingresult.text == "\"pong\"":
+            return {"message": "pong", "status": True}
+        else:
+            return {"message": "Invalid response to ping (%s)" % pingresult.text, "status": False}
+    except requests.exceptions.ConnectionError as err:
+        return {"message": "Connection error (%s)" % err, "status": False}
     except requests.exceptions.Timeout:
-        message = { "message":"Timeout", "status":False }
+        return {"message": "Timeout", "status": False}
     except requests.exceptions.InvalidURL:
-        message = { "message":"Invalid URL", "status":False }
+        return {"message": "Invalid URL", "status": False}
 
-    return message    
 
-def get_status(host=None, port=None, proto="http", target=None, daemon=None, timeout=1):
-    uri = "%s://%s:%s/get-all-states" % (proto, host, port)
+def get_status(host=None,
+               port=None,
+               protocol="http",
+               target=None,
+               daemon=None,
+               timeout=1,
+               ssl=False,
+               ca=None,
+               cert=None,
+               key=None):
+    uri = "%s://%s:%s/get-all-states" % (protocol, host, port)
+    statusresult = {}
+    d = {}
     try:
-        result = requests.get(uri, timeout=timeout).json()
+        if ssl:
+            statusresult = requests.get(uri, timeout=timeout, verify=ca, cert=(cert, key)).json()
+        else:
+            statusresult = requests.get(uri, timeout=timeout, verify=False).json()
     except requests.exceptions.ConnectionError:
-        message = { "message":"Connection error", "status":False }
+        return {"message": "Connection error", "status": False}
     except requests.exceptions.Timeout:
-        message = { "message":"Timeout", "status":False }
+        return {"message": "Timeout", "status": False}
     finally:
-        if target in result.keys():
-            data = result[target]
+        if target in statusresult.keys():
+            data = statusresult[target]
         else:
             data = False
 
@@ -76,42 +86,53 @@ def get_status(host=None, port=None, proto="http", target=None, daemon=None, tim
             else:
                 data = False
 
-
         if not data:
-            message = { "message":"Target or Daemon not found", "status":False, "data":data }
+            return {"message": "Target or Daemon not found", "status": False, "data": data}
         else:
-            message = { "message":"OK", "status":True, "data":data }
+            return {"message": "OK", "status": True, "data": data}
 
-    return message
- 
-def get_all_status(host=None, port=None, proto="http", timeout=1):
-    uri = "%s://%s:%s/get-all-states" % (proto, host, port)
+
+def get_all_status(host=None,
+                   port=None,
+                   protocol="http",
+                   timeout=1,
+                   ssl=False,
+                   ca=False,
+                   cert=None,
+                   key=None):
+    uri = "%s://%s:%s/get-all-states" % (protocol, host, port)
+    result = {}
     try:
-        result = requests.get(uri, timeout=timeout).json()
+        result = requests.get(uri, timeout=timeout, verify=ca, cert=(cert, key)).json()
     except requests.exceptions.ConnectionError:
-        message = { "message":"Connection error", "status":False }
+        return {"message": "Connection error", "status": False}
     except requests.exceptions.Timeout:
-        message = { "message":"Timeout", "status":False }
+        return {"message": "Timeout", "status": False}
     finally:
 
-        print "From :", host
+        print "From : ", host
         print
 
-        print "+%s+" % (106*"-")
-        print "| {:^20} | {:^20} | {:^15} | {:^19} | {:^8} | {:^7} |".format("TYPE","NAME","STATUS","REALM","ATTEMPTS","SPARE")
-        print "+%s+" % (106*"-")
-        for key,data in result.iteritems():
+        print "+%s+" % (106 * "-")
+        print "| {:^20} | {:^20} | {:^15} | {:^19} | {:^8} | {:^7} |".format("TYPE",
+                                                                             "NAME",
+                                                                             "STATUS",
+                                                                             "REALM",
+                                                                             "ATTEMPTS",
+                                                                             "SPARE")
+        print "+%s+" % (106 * "-")
+        for key, data in result.iteritems():
             for daemon in data:
 
-                attempts = "%s/%s" % (daemon["attempt"],daemon["max_check_attempts"])
+                attempts = "%s/%s" % (daemon["attempt"], daemon["max_check_attempts"])
 
                 if not daemon["alive"]:
-                    alive= "dead"
+                    alive = "dead"
                 else:
                     if daemon["attempt"] > 0:
                         alive = "retry"
                     else:
-                        alive= "alive"
+                        alive = "alive"
 
                 if daemon["spare"]:
                     spare = "X"
@@ -123,9 +144,12 @@ def get_all_status(host=None, port=None, proto="http", timeout=1):
                 else:
                     realm = ""
 
-                print "| {:20} | {:20} | {:^15} | {:19} | {:^8} | {:^7} |".format(key,daemon["%s_name" % key], alive, realm, attempts, spare)
-        print "+%s+" % (106*"-")
-
+                print "| {:20} | {:20} | {:^15} | {:19} | {:^8} | {:^7} |".format(key, daemon["%s_name" % key],
+                                                                                  alive,
+                                                                                  realm,
+                                                                                  attempts,
+                                                                                  spare)
+        print "+%s+" % (106 * "-")
 
 
 if __name__ == '__main__':
@@ -133,12 +157,14 @@ if __name__ == '__main__':
     parser = OptionParser()
     parser.add_option('-a', '--hostnames', dest='hostnames', default='127.0.0.1')
     parser.add_option('-p', '--portnumber', dest='portnum', default=7770, type=int)
-    parser.add_option('-s', '--ssl', action="store_true", dest='ssl', default=False)
-    parser.add_option('-t', '--target', dest='target',default=False,type=str)
+    parser.add_option('-t', '--target', dest='target', default=False, type=str)
     parser.add_option('-d', '--daemonname', dest='daemon', default='')
     parser.add_option('-T', '--timeout', dest='timeout', default=1, type=float)
     parser.add_option('-v', '--verbose', action="store_true", dest='verbose', default=False)
-
+    parser.add_option('--ssl', action="store_true", dest='ssl', default=False)
+    parser.add_option('--ca', dest='ca', default=None)
+    parser.add_option('--cert', dest='cert', default=None)
+    parser.add_option('--key', dest='key', default=None)
 
     # Retrieving options
     options, args = parser.parse_args()
@@ -149,30 +175,48 @@ if __name__ == '__main__':
     else:
         proto = "http"
 
+    # if options.ssl:
+    #    print "[UNKNOWN] SSL/TLS support is not curently implemented"
+    #    sys.exit(UNKNOWN)
+
     # first we ping the arbiters unless we find one alive
     if "," in options.hostnames:
         hostnames = options.hostnames.split(",")
     else:
-        hostnames = [ options.hostnames ]
+        hostnames = [options.hostnames]
 
     hostname = False
 
-
     for h in hostnames:
         h = h.strip()
-        result = ping(host=h, port=options.portnum, proto=proto, timeout=options.timeout)
+        result = ping(host=h,
+                      port=options.portnum,
+                      protocol=proto,
+                      timeout=options.timeout,
+                      ssl=options.ssl,
+                      ca=options.ca,
+                      cert=options.cert,
+                      key=options.key)
+
         if result["status"]:
             hostname = h
             break
 
     if not hostname:
         # no arbiter are alive !
-        print "CRITICAL : No arbiter reachable !" 
+        print "CRITICAL : No arbiter reachable !"
         sys.exit(CRITICAL)
 
     # detailled output and no more
     if options.verbose:
-        get_all_status(host=hostname, port=options.portnum, proto=proto, timeout=options.timeout)
+        get_all_status(host=hostname,
+                       port=options.portnum,
+                       protocol=proto,
+                       timeout=options.timeout,
+                       ssl=options.ssl,
+                       ca=options.ca,
+                       cert=options.cert,
+                       key=options.key)
         sys.exit(OK)
 
     # Check for required option target
@@ -186,10 +230,18 @@ if __name__ == '__main__':
         parser.print_help()
         sys.exit(CRITICAL)
 
-
-
     # get daemons status (target = daemon type, daemon = daemon name)
-    result = get_status(host=hostname, port=options.portnum, proto=proto, target=options.target, daemon = options.daemon, timeout=options.timeout)
+    result = get_status(host=hostname,
+                        port=options.portnum,
+                        protocol=proto,
+                        target=options.target,
+                        daemon=options.daemon,
+                        timeout=options.timeout,
+                        ssl=options.ssl,
+                        ca=options.ca,
+                        cert=options.cert,
+                        key=options.key)
+
     if not "status" in result.keys() or not result["status"]:
         print "Error : ", result["message"]
         sys.exit(UNKNOWN)
@@ -205,10 +257,14 @@ if __name__ == '__main__':
                     dead.append(d["%s_name" % options.target])
 
             if len(dead) > 0:
-                print "[CRITICAL] The following %s(s) daemon(s) are dead : %s (from %s arbiter)" % (options.target, ",".join(set(dead)), hostname)
+                print "[CRITICAL] The following %s(s) daemon(s) are dead : %s (from %s arbiter)" % (options.target,
+                                                                                                    ",".join(set(dead)),
+                                                                                                    hostname)
                 sys.exit(CRITICAL)
             else:
-                print "[OK] all %s daemons are alive (%s) (from %s arbiter)" % (options.target, ",".join(set(alive)), hostname)
+                print "[OK] all %s daemons are alive (%s) (from %s arbiter)" % (options.target,
+                                                                                ",".join(set(alive)),
+                                                                                hostname)
         else:
             # specific daemon name
             if result["data"]["alive"]:
